@@ -3,13 +3,29 @@
         ; Description: This program attempts to solve hw6 part1.
         ;
 
+; Qs
+; Will there be any bytes in the array A_MSD that are treated as negative?
+;  For example, let a byte from A_MSD be a number that is greater than 8.
+;   In 2's compliment then for example , 8_2 = -1_Dec, 9_2 = -2_Dec.
+;
+; Should each member of A_MSD be treated individually?
+;  That is, should I carry to the next member if there is an overflow.
+;
+; Why do directions say convert b into 32-bit 2's compliment?
+;  B/c positive numbers are all the same.
+; Does "If any symbol of a or b is outside the range of 0 to 15, set 0x00000000
+;  as the value of  the word labeled as RESULT in memory." mean set ENTIRE
+;  result to 0.
+
+
+        
         AREA	HW6_PART1, CODE
-SWI_Exit	EQU	    &11	            ; Software interupt will exit the program
-A_MSD       DCB     0x1, 0x2, 0x3
+SWI_Exit	EQU	    &11	            ; Software interrupt will exit the program
+A_MSD       DCB     0x1, 0x2, 0x3,0xC   ; Arbitrary numbers
 B_MSD
-A_LSD       DCB     0x5, 0x7, 0xB
+A_LSD       DCB     0x5, 0x7, 0xB, 0x7   ; Arbitrary numbers
 B_LSD
-RESULT      %       100
+RESULT      %       100             ; Arbitrary 
         ALIGN
 ; Main:
 ;   Performs operations according the requirements set forth in hw6 part 1.
@@ -37,19 +53,17 @@ BEGIN_LOOP
         BGE     END_LOOP                ; Exit the loop on the end of the data.
         
         LDRB    R2, [R0], #1            ; Load into r2 the current 'a' byte.
-                                        ; The #1 increments r0 after loading.
+                                        ; Advance the address of R0 by 1 byte.
         LDRB    R3, [R1], #1            ; Load into r3 the current 'b' byte.
-                                        ; The #1 increments r0 after loading.
+                                        ; Advance the address of R1 by 1 byte.
         
-        TST     R2, #2, 2               ; Test if r2 is negative.
-; Which flag should be used?
-        BGE     POSITIVE_SWITCH_SIGN    ; Skip conversion for positive numbers.
-; Proceeds to NEGATIVE_SWITCH_SIGN.
+        TST     R2, #&80          ; Test if r2 is negative.
+        BEQ     POSITIVE_SWITCH_SIGN    ; Skip conversion for positive numbers.
 
 ; For negative numbers, switches the sign in 2's compliment.
 NEGATIVE_SWITCH_SIGN                
         SUB     R2, R2, #1              ; Subtract 1 from R3.
-        MOV     R7, #&FFFFFFFF
+        MOV     R7, #&000000FF
         EOR     R2, R2, R7              ; Flip every bit.
         B       RESULT_SUM              ; Skip the other sign flip.
 
